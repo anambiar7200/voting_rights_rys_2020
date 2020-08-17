@@ -29,4 +29,7 @@
     <string name="already_user">Already a Member? Login Here</string>
     <string name="channel_name">electionNotification</string>
     <string name="channel_description">Allow for election notifications</string>
+
+    <string name="pollingplace"> Your Polling Place </string>
+    <string name="upcomingElec"> Upcoming Election </string>
 </resources>

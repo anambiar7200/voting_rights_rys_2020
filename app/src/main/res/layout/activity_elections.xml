@@ -17,12 +17,16 @@
         android:onClick="displayAllElections"
         android:text="@string/allElec_button"
         app:layout_constraintBaseline_toBaselineOf="@+id/myElectButton"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        android:background="@drawable/round_button"
+        android:textColor="@color/buttonText"
+        />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Elections"
+        android:visibility="invisible"
         app:layout_constraintBottom_toTopOf="@+id/bot_nav"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -65,7 +69,10 @@
         android:onClick="displayMyElections"
         android:text="@string/myElec_button"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:background="@drawable/round_button"
+        android:textColor="@color/buttonText"
+        />
 
     <TextView
         android:id="@+id/allElectionsTV"
@@ -100,6 +107,5 @@
         android:layout_marginTop="150dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-
+    
 </androidx.constraintlayout.widget.ConstraintLayout>

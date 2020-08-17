@@ -51,6 +51,17 @@ public class MainActivity extends AppCompatActivity {
         BottomNavigationView bottomNavView = findViewById(R.id.bot_nav);
         bottomNavView.setSelectedItemId(R.id.home);
 
+        TextView nextElec = findViewById(R.id.soonestElection);
+        if (Elections.myElections != null) {
+            System.out.println("yay there are elections");
+            Election node = (Election) Elections.myElections.get(0);
+            String election_info = node.getName() + "\n" + node.getDate() + "\n";
+            nextElec.setText(election_info);
+        }
+        else {
+            nextElec.setText("You have no upcoming elections at this time. Please check your address or try again later.");
+        }
+
         //Start a new activity when a nav bar item is selected
         bottomNavView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
