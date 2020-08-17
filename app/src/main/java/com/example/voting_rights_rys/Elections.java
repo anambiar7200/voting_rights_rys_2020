@@ -1,6 +1,8 @@
 package com.example.voting_rights_rys;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -149,48 +151,95 @@ class GetFromAPI {
         }
 
         String parseVoterJSON(String response, Election election){
-                if (response.contains("earlyVotingSites")){
-                        election.isEarlyVotingAllowed = true;
-                }
-                if (response.contains("pollingLocations")) {
-                        System.out.println("inside polling if");
-                        JSONObject resp;
-                        try {
-                                resp = new JSONObject(response);
+                //System.out.println(response);
+                //System.out.println("NOW WE'RE SPLIGGINT THIGNS OUP" + "\n");
 
-                                JSONArray locations = resp.getJSONArray("pollingLocations");
-                                JSONObject loc = (JSONObject) locations.get(0);
-                                String address = "";
-                                if (response.contains("locationName")){
-                                        address += loc.getString("locationName") + "\n";
-                                }
-                                address += loc.getString("line1");
-                                if (response.contains("line2")) {
-                                        address += loc.getString("line2")+ "\n";
-                                        if (response.contains("line3")){
-                                                address += loc.getString("line3")+ "\n";
-                                        }
-                                }
-                                address += loc.getString("city") + ",";
-                                address += loc.getString("state");
-                                address += loc.getString("zip");
+                try {
+                        JSONObject resp = new JSONObject(response);
+                        //System.out.println(resp.getString("pollingLocations"));
+                        JSONArray polloclist  = resp.getJSONArray("pollingLocations");
+                        JSONObject adr = polloclist.getJSONObject(0).getJSONObject("address");
+                        String adrString = polloclist.getJSONObject(0).getString("address");
+                        String address = "";
+                        if (adrString.contains("locationName")){
+                                //System.out.println("inside locationName");
+                                address += adr.getString("locationName") + "\n";
                                 //System.out.println(address);
-                                return address;
                         }
-                        catch (JSONException e) {
-                                e.printStackTrace();
+                        address += adr.getString("line1") + "\n";
+                        if (adrString.contains("line2")) {
+                                System.out.println("inside line2");
+                                address += adr.getString("line2")+ "\n";
+                                if (adrString.contains("line3")){
+                                        address += adr.getString("line3")+ "\n";
+                                }
+                        }
+                        address += adr.getString("city") + ", ";
+                        address += adr.getString("state") +  " ";
+                        address += adr.getString("zip") +  " ";
+                        //System.out.println(address) ;;
+                        //System.out.println(address);
+                        return address;
 
-                        }
+
+
+
+
+                } catch (JSONException e) {
+                        e.printStackTrace();
+                        System.out.println("oof it didn't work");
                 }
 
-                return "Your polling place is unavailable, check back later.";}
+                /**if (response.contains("earlyVotingSites")){
+                 election.isEarlyVotingAllowed = true;
+                 }
+                 if (response.contains("pollingLocations")) {
+                 System.out.println("inside polling if");
+                 JSONObject resp;
+                 try {
+                 resp = new JSONObject(response);
+
+                 JSONArray locations = resp.getJSONArray("pollingLocations");
+                 System.out.println(locations);
+                 JSONObject loc = (JSONObject) locations.getString(0);
+                 String address = "";
+                 if (response.contains("locationName")){
+                 System.out.println("inside locationName");
+                 address += loc.getString("locationName") + "\n";
+                 System.out.println(address);
+                 }
+                 address += loc.getString("line1");
+                 System.out.println("line 1: " + address);
+                 if (response.contains("line2")) {
+                 System.out.println("inside line2");
+                 address += loc.getString("line2")+ "\n";
+                 if (response.contains("line3")){
+                 address += loc.getString("line3")+ "\n";
+                 }
+                 }
+                 address += loc.getString("city") + ",";
+                 address += loc.getString("state");
+                 address += loc.getString("zip");
+                 //System.out.println(address);
+                 return address;
+                 }
+                 catch (JSONException e) {
+                 e.printStackTrace();
+
+                 }
+                 }
+
+                 return "Your polling place is unavailable, check back later.";
+                 **/
+                return null;
+        }
 }
 
 /** Elections class -- an election object has fields name, date, id, level <br>
  isEarlyVotingAllowed, going, and myElection **/
 class Election {
-        static LinkedList<Election> all_elections = new LinkedList<>();
-        static LinkedList<Election> my_elections = new LinkedList<>();
+        static LinkedList<Election> all_elections = new LinkedList<Election>();
+        static LinkedList<Election> my_elections = new LinkedList<Election>();
 
         String name;
         String date;
@@ -209,16 +258,19 @@ class Election {
                 String day = date.substring(8,10);
                 return month + " " + day + ", " + year;
         }
-  
+
         /** Finds the level of the election. If the election is federal or in the same state as <br>
          userState, then myElection is set to true.
          Precondition: userState is the lowercase abbreviation of the state name <br>
          division is in the form of the following examples:
          "ocd-division/country:us" or "ocd-division/country:us/state:ny"**/
         public String findLevelandState(String division, String userState){
+                System.out.println(userState);
+                System.out.println(division);
                 if (division.contains("/state:")){
                         level = "State";
-                        if(division.contains(userState)){
+                        if(division.contains(userState.toLowerCase())){
+                                System.out.println("WE GOT AN ELECTION");
                                 myElection = true;
                         }
                 }
@@ -270,10 +322,11 @@ class Election {
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class Elections extends AppCompatActivity {
         public static final String pollingLocation = "com.example.voting_rights_rys.POLLINGPLACE";
-        static String userState;
+        private static String userState; // should be all lower case, get this from settings page
+        SharedPreferences sp;
         static String userAddress;
-        static LinkedList allElections;
-        static LinkedList myElections;
+        static LinkedList<Election> allElections;
+        public static LinkedList<Election> myElections;
         //static LinearLayout allElectionsLayout = new LinearLayout();
         //static LinearLayout myElectionsLayout = new LinearLayout();
         static ArrayList<String> allElectionDisplay;
@@ -298,7 +351,12 @@ public class Elections extends AppCompatActivity {
 
                 if (userAddress != null) {
                         comma_index = userAddress.indexOf("%2C");
-                        userState = userAddress.substring(comma_index +6, comma_index + 8).toLowerCase();
+                        //userState = userAddress.substring(comma_index +6, comma_index + 8).toLowerCase();
+                        //System.out.println("This is the user's state: " + userState);
+                        // Get State from Settings Page
+                        sp = getSharedPreferences("USER_STATE", Context.MODE_PRIVATE);
+                        userState = sp.getString("state","");
+                        System.out.println("USER STATE " + userState);
                 }
 
                 //Initialize bottom nav bar and select "Elections"
@@ -349,6 +407,7 @@ public class Elections extends AppCompatActivity {
                         myElections = e.getMyElections();
                         int ae_size = allElections.size();
                         int mye_size = myElections.size();
+                        System.out.println("I have " + mye_size + " elections");
 
                         Election node; /// = e.getAllElections().head();
                         String viewText = "";
@@ -358,7 +417,7 @@ public class Elections extends AppCompatActivity {
                                 node = e.getAllElections().get(i);
                                 String voterJSON = get.getVoterInfoJSON(node);
                                 pollingPlace = get.parseVoterJSON(voterJSON, node);
-                                //System.out.println("This is the polling place  " + pollingPlace);
+                                System.out.println("This is the polling place  " + pollingPlace);
                                 //System.out.println(node.getID());
                                 String this_election = "Name: " + node.getName() + "\n" + "Date: " + node.getDate() + "\n";
                                 viewText += this_election;
